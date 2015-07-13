@@ -605,6 +605,10 @@ namespace Switcheroo
 		  {
 			  if ( lb.Items.Count > 0 )
 			  {
+				bool canProceed = AreWindowsOfSingleProcessFiltered() || ConfirmMultiProcessClose();
+				if ( !canProceed )
+					return;
+
 				  var closingTasks = _filteredWindowList
 					  .ToArray()
 					  .Select( window => TryCloseAndRemoveWindowAsync( window ) )
@@ -623,6 +627,23 @@ namespace Switcheroo
 
 			  e.Handled = true;
 		  }
+
+		private bool AreWindowsOfSingleProcessFiltered()
+		{
+			var uniqueProcessTitleCount = _filteredWindowList
+				.Select( w => w.ProcessTitle )
+				.Distinct()
+				.Count();
+
+			bool areWindowsOfSingleProcess = uniqueProcessTitleCount == 1;
+			return areWindowsOfSingleProcess;
+		}
+
+		private bool ConfirmMultiProcessClose()
+		{
+			var result = MessageBox.Show( "You are about to close windows of multiple processes. Are you sure?", "Close confirmation", MessageBoxButton.OKCancel );
+			return result == MessageBoxResult.OK;
+		}
         
         private void RemoveWindow(AppWindowViewModel window)
         {
